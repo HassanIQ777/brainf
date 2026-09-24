@@ -1,0 +1,3 @@
+# brainf/compile_flags.txt
+-std=c17
+-Iinclude

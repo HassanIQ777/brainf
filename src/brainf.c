@@ -1,1 +1,2 @@
-#include "../include/brainf.h"
+#include "brainf.h"
+

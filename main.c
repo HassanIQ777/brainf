@@ -1,4 +1,3 @@
 #include "src/brainf.c"
 
-
-int main(){}
+int main() {}

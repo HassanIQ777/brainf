@@ -1,45 +1,76 @@
-# Compiler and Flags
+# ============================================================
+#  Brainf — Static Builder
+# ============================================================
+
 CXX      := gcc
-CXXFLAGS := -std=c17 -Wall -Wextra
+CXXFLAGS := -std=c17 -Wall -Wextra -Iinclude
 LDFLAGS  := 
+AR       := ar
+ARFLAGS  := rcs
 
-# Add this to CXXFLAGS
-CXXFLAGS += -MMD -MP
+SRC_DIR  := src
+OBJ_DIR  := obj
+LIB_DIR  := lib
+BIN_DIR  := bin
+LIB      := $(LIB_DIR)/libbrainf.a
 
-# Add this to the bottom of the Makefile
--include $(OBJECTS:.o=.d)
+SRCS     := $(wildcard $(SRC_DIR)/*.c)
+OBJS     := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS))
 
-# Directories
-SRC_DIR := src
-OBJ_DIR := obj
-BIN_DIR := bin
+# --- run target: first .c at root ---
+# Override with: make run SRC=main.c
+SRC      := $(wildcard *.c)
+RUN_BIN  := $(BIN_DIR)/$(basename $(SRC))
 
-# Files
-# This automatically finds all .c files in src/ and main.c
-SOURCES  := $(wildcard $(SRC_DIR)/*.c) main.c
-# This converts src/FileName.c to obj/FileName.o
-OBJECTS  := $(SOURCES:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
-TARGET   := $(BIN_DIR)/brainf
+# ============================================================
+#  Build modes
+# ============================================================
+ifeq ($(MAKECMDGOALS), debug)
+    CXXFLAGS += -g -O0 -DDEBUG -fsanitize=address,undefined
+    LDFLAGS  += -fsanitize=address,undefined
+    $(info [Brainf] Building in DEBUG mode)
+else
+    CXXFLAGS += -O2 -DNDEBUG
+    $(info [Brainf] Building in RELEASE mode)
+endif
 
-# Phony Targets (commands that aren't files)
-.PHONY: all clean run
+# ============================================================
+#  Rules
+# ============================================================
 
-all: $(TARGET)
+all: dirs $(LIB)
+debug: dirs $(LIB)
 
-# Link the executable
-$(TARGET): $(OBJECTS)
-	@mkdir -p $(BIN_DIR)
-	$(CXX) $(OBJECTS) -o $@ $(LDFLAGS)
+$(LIB): $(OBJS)
+	@echo "[AR]  $@"
+	@$(AR) $(ARFLAGS) $@ $^
+	@echo "[OK]  libbrainf.a sealed."
 
-# Compile source files to object files
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	@mkdir -p $(OBJ_DIR)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	@echo "[CC]  $<"
+	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Run the game
 run: all
-	./$(TARGET)
+	$(if $(SRC),,$(error No runnable .c found at root. Use: make run SRC=yourfile.c))
+	@echo "[CC]  $(SRC) → $(RUN_BIN)"
+	@$(CXX) $(CXXFLAGS) $(SRC) -o $(RUN_BIN) $(LDFLAGS)
+	@echo "[RUN] $(RUN_BIN)"
+	@./$(RUN_BIN)
 
-# Clean build files
+dirs:
+	@mkdir -p $(OBJ_DIR) $(LIB_DIR) $(BIN_DIR)
+
 clean:
-	rm -rf $(OBJ_DIR) $(BIN_DIR)
+	@rm -rf $(OBJ_DIR) $(LIB_DIR) $(BIN_DIR)
+	@echo "[CLN] Library dust swept away."
+
+rebuild: clean all
+
+info:
+	@echo "Sources : $(SRCS)"
+	@echo "Objects : $(OBJS)"
+	@echo "Library : $(LIB)"
+	@echo "Run src : $(SRC)"
+	@echo "Run bin : $(RUN_BIN)"
+
+.PHONY: all debug run clean rebuild info dirs

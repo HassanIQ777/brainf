@@ -123,7 +123,7 @@ BrainfInstruction *brainf_remove(struct BrainfState *,
  * @param instruction The instruction to add
  * @return The instruction that was added
  */
-BrainfInstruction *brainf_add_first(struct BrainfState *,
+BrainfInstruction *brainf_add_front(struct BrainfState *,
                                     struct BrainfInstruction *);
 
 /* Inserts an instruction to the instruction list before an instruction
@@ -171,8 +171,8 @@ void brainf_execute(struct BrainfInstruction *,
                     struct BrainfExecutionContext *);
 
 void brainf_execution_stop(BrainfExecutionContext *);
-
 /////////////////
+
 char brainf_getchar(void);
 
 #endif // BRAINF_H

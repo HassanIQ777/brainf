@@ -3,6 +3,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#define VERSION "26.9.26"
+
 #define BRAINF_TAPE_SIZE 30000
 
 /* EOF leaves cells unchanged, 0: EOF == 0; 1: EOF == 1*/

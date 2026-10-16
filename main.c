@@ -1,4 +1,4 @@
-#include "brainf.h"
+// #include "include/brainf.h"
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>

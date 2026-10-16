@@ -1,4 +1,4 @@
-#include "brainf.h"
+#include "../include/brainf.h"
 
 #include <assert.h>
 #include <limits.h>

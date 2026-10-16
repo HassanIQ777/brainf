@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define VERSION "26.9.26"
+#define VERSION "26.10.16"
 
 #define BRAINF_TAPE_SIZE 30000
 

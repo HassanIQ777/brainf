@@ -143,53 +143,34 @@ BrainfInstruction *brainf_parse_stream(FILE *stream) {
 }
 
 BrainfInstruction *brainf_parse_stream_until(FILE *stream, const int until) {
-  BrainfInstruction *instruction =
-      (BrainfInstruction *)malloc(sizeof(BrainfInstruction));
+  BrainfInstruction *root = (BrainfInstruction *)calloc(1, sizeof *root);
+  BrainfInstruction *instruction = root;
+  int ch, temp;
 
-  instruction->next = 0;
-  instruction->loop = 0;
-  BrainfInstruction *root = instruction;
-  char ch, temp;
-
-  while ((ch = fgetc(stream)) != until) {
-    if (ch == EOF || feof(stream)) {
-      break;
-    }
+  while ((ch = fgetc(stream)) != until && ch != EOF) {
     instruction->type = ch;
     instruction->difference = 1;
     switch (ch) {
     case BRAINF_TOKEN_PLUS:
     case BRAINF_TOKEN_MINUS:
-      while ((temp = fgetc(stream) != until && (temp == BRAINF_TOKEN_PLUS ||
-                                                temp == BRAINF_TOKEN_MINUS))) {
-        if (ch == temp) {
-          instruction->difference++;
-        } else {
-          instruction->difference--;
-        }
-      }
+      while ((temp = fgetc(stream)) == BRAINF_TOKEN_PLUS ||
+             temp == BRAINF_TOKEN_MINUS)
+        instruction->difference += (temp == ch) ? 1 : -1;
       ungetc(temp, stream);
       break;
 
     case BRAINF_TOKEN_NEXT:
     case BRAINF_TOKEN_PREVIOUS:
-      while (
-          (temp = fgetc(stream) != until && (temp == BRAINF_TOKEN_NEXT ||
-                                             temp == BRAINF_TOKEN_PREVIOUS))) {
-        if (ch == temp) {
-          instruction->difference++;
-        } else {
-          instruction->difference--;
-        }
-      }
+      while ((temp = fgetc(stream)) == BRAINF_TOKEN_NEXT ||
+             temp == BRAINF_TOKEN_PREVIOUS)
+        instruction->difference += (temp == ch) ? 1 : -1;
       ungetc(temp, stream);
       break;
 
     case BRAINF_TOKEN_OUTPUT:
     case BRAINF_TOKEN_INPUT:
-      while ((temp = fgetc(stream)) != until && temp == ch) {
+      while ((temp = fgetc(stream)) == ch)
         instruction->difference++;
-      }
       ungetc(temp, stream);
       break;
 
@@ -198,8 +179,7 @@ BrainfInstruction *brainf_parse_stream_until(FILE *stream, const int until) {
       break;
 
     case BRAINF_TOKEN_LOOP_END:
-      return root;
-      break;
+      return root; /* this node acts as the terminator */
 
     case BRAINF_TOKEN_BREAK:
       break;
@@ -207,9 +187,9 @@ BrainfInstruction *brainf_parse_stream_until(FILE *stream, const int until) {
     default:
       continue;
     }
-    instruction->next = (BrainfInstruction *)malloc(sizeof(BrainfInstruction));
-    instruction->next->next = 0;
-    instruction->next->loop = 0;
+    instruction->next = (BrainfInstruction *)calloc(1, sizeof *instruction);
+    instruction->next->previous = instruction;
+    instruction = instruction->next; /* advance to next instruction */
   }
   instruction->type = BRAINF_TOKEN_LOOP_END;
   return root;

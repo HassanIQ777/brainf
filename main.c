@@ -173,7 +173,7 @@ int main(int argc, char *argv[]) {
       run_interactive_console();
     } else {
       if (run_file(stdin) == EXIT_FAILURE) {
-        fprintf(stderr, "Error: failed to read file: %s\n", argv[i - 1]);
+        fprintf(stderr, "Error: failed to read from stdin\n");
       }
     }
   }
